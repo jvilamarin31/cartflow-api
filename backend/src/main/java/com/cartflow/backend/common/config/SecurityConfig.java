@@ -1,6 +1,6 @@
-package com.cartflow.backend.config;
+package com.cartflow.backend.common.config;
 
-import com.cartflow.backend.jwt.JwtAuthenticationFilter;
+import com.cartflow.backend.common.jwt.JwtAuthenticationFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

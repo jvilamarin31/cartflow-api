@@ -1,4 +1,4 @@
-package com.cartflow.backend.jwt;
+package com.cartflow.backend.common.jwt;
 
 import com.cartflow.backend.user.entity.UserEntity;
 import io.jsonwebtoken.Claims;

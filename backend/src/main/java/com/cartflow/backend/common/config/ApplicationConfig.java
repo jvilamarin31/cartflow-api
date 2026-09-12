@@ -1,4 +1,4 @@
-package com.cartflow.backend.config;
+package com.cartflow.backend.common.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
