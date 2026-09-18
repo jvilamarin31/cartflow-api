@@ -89,3 +89,40 @@ CREATE TABLE `order_item` (
     CONSTRAINT `fk_order_item_order` FOREIGN KEY (`order_id`) REFERENCES `order` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_order_item_product` FOREIGN KEY (`product_id`) REFERENCES `product` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+CREATE TABLE `support_ticket` (
+    `id` bigint(20) NOT NULL AUTO_INCREMENT,
+    `user_id` bigint(20) NOT NULL COMMENT 'Cliente que creó el ticket',
+    `order_id` bigint(20) DEFAULT NULL COMMENT 'Pedido relacionado (si aplica)',
+    `category` varchar(30) NOT NULL COMMENT 'ORDER_ISSUE, PAYMENT_ISSUE, ACCOUNT_ISSUE',
+    `subject` varchar(200) NOT NULL,
+    `message` text NOT NULL COMMENT 'Mensaje inicial del cliente',
+    `status` varchar(20) NOT NULL DEFAULT 'OPEN' COMMENT 'OPEN, IN_PROGRESS, RESOLVED, CLOSED',
+    `assigned_to` bigint(20) DEFAULT NULL COMMENT 'Admin que tomó el caso',
+    `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+    `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+    PRIMARY KEY (`id`),
+    KEY `ticket_user_FK` (`user_id`),
+    KEY `ticket_order_FK` (`order_id`),
+    KEY `ticket_assigned_FK` (`assigned_to`),
+    KEY `ticket_status_idx` (`status`),
+    CONSTRAINT `ticket_user_FK` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `ticket_order_FK` FOREIGN KEY (`order_id`) REFERENCES `order` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `ticket_assigned_FK` FOREIGN KEY (`assigned_to`) REFERENCES `user` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+CREATE TABLE `support_ticket_reply` (
+    `id` bigint(20) NOT NULL AUTO_INCREMENT,
+    `ticket_id` bigint(20) NOT NULL,
+    `author_id` bigint(20) NOT NULL COMMENT 'Usuario que escribió la respuesta (cliente o admin)',
+    `is_admin_reply` boolean NOT NULL DEFAULT FALSE COMMENT 'TRUE si la respuesta es del admin',
+    `message` text NOT NULL,
+    `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+    PRIMARY KEY (`id`),
+    KEY `reply_ticket_FK` (`ticket_id`),
+    KEY `reply_author_FK` (`author_id`),
+    CONSTRAINT `reply_ticket_FK` FOREIGN KEY (`ticket_id`) REFERENCES `support_ticket` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `reply_author_FK` FOREIGN KEY (`author_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
