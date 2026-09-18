@@ -45,7 +45,7 @@ Este glosario incluye los términos esenciales utilizados en la documentación a
 - **GlobalExceptionHandler**: componente `@RestControllerAdvice` que centraliza el manejo de errores.  
   [Ver más](08_conceptos_transversales.md)
 
-- **HU (Historia de Usuario)**: unidad de requisito funcional desde la perspectiva del usuario (HU-001..HU-019).  
+- **HU (Historia de Usuario)**: unidad de requisito funcional desde la perspectiva del usuario (HU-001..HU-026).  
   [Ver más](../epicas-y-hu.md)
 
 - **JPA / Hibernate**: estándar y framework de persistencia usados para mapear entidades a MariaDB.  

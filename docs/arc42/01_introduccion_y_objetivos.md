@@ -2,7 +2,7 @@
 
 ## Propósito
 
-CartFlow API es el backend de una tienda en línea. Expone una API REST que cubre autenticación de usuarios, gestión de productos, carrito de compras y procesamiento de pagos mediante Stripe. El alcance funcional está definido por 4 épicas y las historias de usuario HU-001 a HU-019 en [`epicas-y-hu.md`](../epicas-y-hu.md).
+CartFlow API es el backend de una tienda en línea. Expone una API REST que cubre autenticación de usuarios, gestión de productos, carrito de compras, procesamiento de pagos mediante Stripe y gestión de tickets de soporte. El alcance funcional está definido por 5 épicas y las historias de usuario HU-001 a HU-026 en [`epicas-y-hu.md`](../epicas-y-hu.md).
 
 ## Principales Partes Interesadas
 
@@ -32,4 +32,5 @@ Estos objetivos guían las decisiones de diseño detalladas en las secciones sig
 | Épica 1: Autenticación y Gestión de Usuarios | Registro, login, perfil, verificación y reenvío de correo (HU-001..003, HU-017..018) | 🔜 Planificado (registro parcialmente ✅) |
 | Épica 2: Gestión de Productos | CRUD de productos, catálogo público y detalle (HU-004..008, HU-019) | 🔜 Planificado |
 | Épica 3: Gestión del Carrito de Compras | Agregar, actualizar, eliminar ítems y ver total (HU-009..012) | 🔜 Planificado |
-| Épica 4: Procesamiento de Pagos con Stripe | Iniciar pago, webhook, errores e historial de pedidos (HU-013..016) | 🔜 Planificado |
+| Épica 4: Procesamiento de Pagos con Stripe | Iniciar pago, webhook, errores, historial de pedidos y correo de confirmación (HU-013..016, HU-020) | 🔜 Planificado |
+| Épica 5: Gestión de Tickets de Soporte | Creación, listado, conversación cliente/admin, asignación y estados de tickets (HU-021..026) | 🔜 Planificado |

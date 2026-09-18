@@ -11,7 +11,7 @@ Esta sección describe las restricciones que afectan el diseño y desarrollo de 
 - **Pasarela de pago**: el procesamiento de pagos se delega por completo a **Stripe**. No se manejan datos sensibles de tarjetas en el servidor.
 - **Correo transaccional**: el envío de correos (verificación de cuenta) se delega a un servicio SMTP externo (**Mailtrap / Gmail**).
 - **Autenticación**: el estándar es **JWT** firmado con HMAC-SHA256 mediante la librería **JJWT** (0.12.6).
-- **Alcance académico**: el proyecto se limita a las 4 épicas y las HU-001..HU-019 definidas en [`epicas-y-hu.md`](../epicas-y-hu.md).
+- **Alcance académico**: el proyecto se limita a las 5 épicas y las HU-001..HU-026 definidas en [`epicas-y-hu.md`](../epicas-y-hu.md).
 
 ## Restricciones Internas
 
