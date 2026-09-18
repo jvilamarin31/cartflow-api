@@ -9,6 +9,7 @@
 - [Épica 2: Gestión de Productos](#épica-2-gestión-de-productos)
 - [Épica 3: Gestión del Carrito de Compras](#épica-3-gestión-del-carrito-de-compras)
 - [Épica 4: Procesamiento de Pagos con Stripe](#épica-4-procesamiento-de-pagos-con-stripe)
+- [Épica 5: Gestión de Tickets de Soporte](#épica-5-gestión-de-tickets-de-soporte)
 
 ### Historias de Usuario
 - [HU-001: Registro de usuario](#hu-001-registro-de-usuario)
@@ -30,6 +31,13 @@
 - [HU-017: Verificar cuenta mediante enlace de correo](#hu-017-verificar-cuenta-mediante-enlace-de-correo)
 - [HU-018: Reenviar correo de verificación](#hu-018-reenviar-correo-de-verificación)
 - [HU-019: Ver detalle de producto](#hu-019-ver-detalle-de-producto)
+- [HU-020: Enviar email de confirmación de compra](#hu-020-enviar-email-de-confirmación-de-compra)
+- [HU-021: Crear ticket de soporte](#hu-021-crear-ticket-de-soporte)
+- [HU-022: Ver mis tickets y su detalle](#hu-022-ver-mis-tickets-y-su-detalle)
+- [HU-023: Responder en un ticket (Cliente)](#hu-023-responder-en-un-ticket-cliente)
+- [HU-024: Listar todos los tickets](#hu-024-listar-todos-los-tickets)
+- [HU-025: Tomar y cambiar estado de un ticket](#hu-025-tomar-y-cambiar-estado-de-un-ticket)
+- [HU-026: Responder en un ticket (Admin)](#hu-026-responder-en-un-ticket-admin)
 
 ---
 
@@ -48,7 +56,7 @@ Implementar la base de la seguridad del sistema, permitiendo el registro, login 
 **Alcance**
 - CRUD de usuarios.
 - Registro e inicio de sesión.
-- Envío de correos transaccionales (verificación de cuenta).
+- Envío de correos de verificación y reenvío.
 - Implementación del filtro JWT (OncePerRequestFilter).
 - Configuración de Spring Security y roles.
 
@@ -157,6 +165,7 @@ Implementar el flujo completo de compra, integrando una pasarela de pagos extern
 - Vaciar el carrito del cliente una vez completada la compra.
 - Gestionar los estados del pedido (pendiente, pagado, fallido, cancelado).
 - Permitir la visualización del historial de pedidos por parte del usuario y del administrador.
+- Enviar correo de confirmación al cliente tras un pago exitoso.
 
 **Criterios de Épica (Para darla por completada)**
 - El sistema impide el pago si el carrito está vacío.
@@ -170,6 +179,47 @@ Implementar el flujo completo de compra, integrando una pasarela de pagos extern
 - [HU-014: Procesar Webhook de pago exitoso y crear pedido](#hu-014-procesar-webhook-de-pago-exitoso-y-crear-pedido)
 - [HU-015: Manejar errores y pagos fallidos o cancelados](#hu-015-manejar-errores-y-pagos-fallidos-o-cancelados)
 - [HU-016: Visualizar historial de pedidos](#hu-016-visualizar-historial-de-pedidos)
+- [HU-020: Enviar email de confirmación de compra](#hu-020-enviar-email-de-confirmación-de-compra)
+
+### Épica 5: Gestión de Tickets de Soporte
+
+**Usuario(s):** Cliente (USER) y Administrador (ADMIN)
+
+**Descripción**
+Como cliente, quiero reportar problemas sobre mis pedidos o mi cuenta y hacer seguimiento a las respuestas del equipo de soporte. Como administrador, quiero gestionar los tickets asignándolos, respondiéndolos y cambiando su estado, para coordinar el trabajo del equipo.
+
+**Objetivo**
+Implementar un sistema de tickets con persistencia en base de datos, estados, asignación a admins y conversación bidireccional entre cliente y admin.
+
+**Alcance**
+- Creación de tickets por parte del cliente (con categoría y pedido opcional).
+- Listado y detalle de tickets (cliente ve los suyos; admin ve todos).
+- Conversación bidireccional con notificaciones por email.
+- Asignación de tickets a un admin.
+- Cambio de estados: `OPEN`, `IN_PROGRESS`, `RESOLVED`, `CLOSED`.
+- Filtros y paginación para el listado de admin.
+
+**Dependencias**
+- Módulo de Auth (autenticación de cliente y admin).
+- Módulo de Pedidos y Pagos (para validar `order_id`).
+- Servicio de email (Mailtrap/Gmail) para las notificaciones.
+
+**Criterios de Épica (Para darla por completada)**
+- Un cliente puede crear un ticket y verlo en su historial.
+- Un admin puede listar, asignar, responder y cerrar tickets.
+- El cliente recibe notificación por email cuando el admin responde.
+- El admin asignado recibe notificación por email cuando el cliente responde.
+- Al crear un ticket, se notifica por email al equipo de soporte.
+- Los tickets cerrados no admiten nuevas respuestas.
+- Un cliente solo puede ver y responder sus propios tickets.
+
+**Historias de Usuario Relacionadas**
+- [HU-021: Crear ticket de soporte](#hu-021-crear-ticket-de-soporte)
+- [HU-022: Ver mis tickets y su detalle](#hu-022-ver-mis-tickets-y-su-detalle)
+- [HU-023: Responder en un ticket (Cliente)](#hu-023-responder-en-un-ticket-cliente)
+- [HU-024: Listar todos los tickets](#hu-024-listar-todos-los-tickets)
+- [HU-025: Tomar y cambiar estado de un ticket](#hu-025-tomar-y-cambiar-estado-de-un-ticket)
+- [HU-026: Responder en un ticket (Admin)](#hu-026-responder-en-un-ticket-admin)
 
 ---
 
@@ -602,3 +652,177 @@ Para que el visitante pueda evaluar el producto antes de decidir agregarlo al ca
 - Dado que cualquier usuario (autenticado o no) consulta el detalle de un producto activo, entonces el sistema responde con estado 200 y los datos completos, sin requerir autenticación.
 - Dado que el producto no existe, entonces el sistema responde con un error 404.
 - Dado que el producto existe pero está inactivo, entonces el sistema responde con un error 404 (no se muestra al público).
+
+### HU-020: Enviar email de confirmación de compra
+
+| Épica | Rol |
+| ----- | --- |
+| [Épica 4: Procesamiento de Pagos con Stripe](#épica-4-procesamiento-de-pagos-con-stripe) | Cliente autenticado (USER) |
+
+**Historia**
+Como cliente, quiero recibir un correo electrónico con el resumen de mi compra tras un pago exitoso, para tener constancia del pedido y poder consultar su estado.
+
+**¿Por qué existe?**
+Para brindar una confirmación inmediata al cliente y mejorar la percepción de la transacción. Es un diferenciador de experiencia de usuario respecto a la simple redirección desde Stripe.
+
+**Prioridad MoSCoW**
+- [ ] Must
+- [x] **Should**
+- [ ] Could
+- [ ] Won't
+
+**Criterios de Aceptación**
+- Dado que un pago se confirma exitosamente (webhook de Stripe), entonces el sistema envía un correo al cliente con el resumen del pedido (productos, cantidades, total y número de pedido).
+- Dado que el correo se envía, entonces el cliente puede hacer clic en un enlace para consultar el detalle del pedido en su historial.
+- Dado que el envío del correo falla, entonces el sistema registra el error pero NO revierte la creación del pedido (el pedido ya está confirmado por Stripe).
+
+### HU-021: Crear ticket de soporte
+
+| Épica | Rol |
+| ----- | --- |
+| [Épica 5: Gestión de Tickets de Soporte](#épica-5-gestión-de-tickets-de-soporte) | Cliente autenticado (USER) |
+
+**Historia**
+Como cliente autenticado, quiero reportar un problema relacionado con un pedido o con mi cuenta, describiendo el caso y adjuntando la referencia del pedido afectado, para que el equipo de soporte pueda atender mi solicitud.
+
+**¿Por qué existe?**
+Para ofrecer un canal formal de soporte a los clientes, con trazabilidad de cada caso y posibilidad de asignación a múltiples admins.
+
+**Prioridad MoSCoW**
+- [x] **Must**
+- [ ] Should
+- [ ] Could
+- [ ] Won't
+
+**Criterios de Aceptación**
+- Dado que un cliente autenticado envía un ticket con categoría, asunto y mensaje válidos, entonces el sistema lo persiste con estado `OPEN` y responde con estado 201 (Created).
+- Dado que el ticket se crea exitosamente, entonces el sistema envía un correo de notificación a la dirección compartida de soporte.
+- Dado que la categoría es `ORDER_ISSUE` o `PAYMENT_ISSUE`, entonces el campo `orderId` es obligatorio.
+- Dado que la categoría es `ACCOUNT_ISSUE`, entonces el campo `orderId` es opcional.
+- Dado que el `orderId` no existe o no pertenece al usuario autenticado, entonces el sistema responde con error 403 (Forbidden).
+- Dado que el asunto supera los 200 caracteres o el mensaje supera los 2000 caracteres, entonces el sistema responde con error 400.
+- Dado que el usuario envía más de 3 tickets en 1 hora, entonces el sistema responde con error 429 (Too Many Requests).
+
+### HU-022: Ver mis tickets y su detalle
+
+| Épica | Rol |
+| ----- | --- |
+| [Épica 5: Gestión de Tickets de Soporte](#épica-5-gestión-de-tickets-de-soporte) | Cliente autenticado (USER) |
+
+**Historia**
+Como cliente autenticado, quiero ver la lista de mis tickets y el detalle de cada uno (incluyendo la conversación), para hacer seguimiento al estado de mis reportes.
+
+**¿Por qué existe?**
+Para dar visibilidad al cliente sobre el estado y progreso de sus solicitudes de soporte.
+
+**Prioridad MoSCoW**
+- [x] **Must**
+- [ ] Should
+- [ ] Could
+- [ ] Won't
+
+**Criterios de Aceptación**
+- Dado que un cliente autenticado consulta su lista de tickets, entonces el sistema responde con estado 200 y únicamente los tickets cuyo `user_id` coincide con el usuario del token.
+- Dado que el cliente consulta el detalle de un ticket propio, entonces el sistema responde con estado 200 y todos los mensajes de la conversación ordenados cronológicamente.
+- Dado que el cliente intenta ver un ticket que no le pertenece, entonces el sistema responde con error 403 (Forbidden).
+- Dado que el cliente no tiene tickets, entonces el sistema responde con estado 200 y una lista vacía.
+
+### HU-023: Responder en un ticket (Cliente)
+
+| Épica | Rol |
+| ----- | --- |
+| [Épica 5: Gestión de Tickets de Soporte](#épica-5-gestión-de-tickets-de-soporte) | Cliente autenticado (USER) |
+
+**Historia**
+Como cliente autenticado, quiero responder en un ticket de soporte abierto, para aportar información adicional o continuar la conversación con el admin.
+
+**¿Por qué existe?**
+Para que el cliente pueda continuar la conversación sin perder el contexto del caso, manteniendo toda la comunicación en un solo hilo.
+
+**Prioridad MoSCoW**
+- [x] **Must**
+- [ ] Should
+- [ ] Could
+- [ ] Won't
+
+**Criterios de Aceptación**
+- Dado que un cliente responde en un ticket propio cuyo estado NO es `CLOSED`, entonces el sistema persiste la respuesta con `is_admin_reply = false` y responde con estado 201 (Created).
+- Dado que un cliente responde en un ticket propio en estado `RESOLVED`, entonces el sistema cambia automáticamente el estado a `IN_PROGRESS` y notifica al admin asignado.
+- Dado que un cliente responde en un ticket en estado `CLOSED`, entonces el sistema responde con error 409 (Conflict).
+- Dado que un cliente intenta responder en un ticket que no le pertenece, entonces el sistema responde con error 403 (Forbidden).
+- Dado que la respuesta se persiste, entonces el sistema envía un correo al admin asignado (o a la dirección compartida si no está asignado).
+
+### HU-024: Listar todos los tickets
+
+| Épica | Rol |
+| ----- | --- |
+| [Épica 5: Gestión de Tickets de Soporte](#épica-5-gestión-de-tickets-de-soporte) | Administrador (ADMIN) |
+
+**Historia**
+Como administrador, quiero ver la lista completa de tickets con filtros por estado, para priorizar y coordinar la atención del equipo de soporte.
+
+**¿Por qué existe?**
+Para que el equipo de soporte tenga visibilidad total de los casos pendientes y pueda priorizar según estado y antigüedad.
+
+**Prioridad MoSCoW**
+- [x] **Must**
+- [ ] Should
+- [ ] Could
+- [ ] Won't
+
+**Criterios de Aceptación**
+- Dado que un admin consulta la lista de tickets, entonces el sistema responde con estado 200 y todos los tickets del sistema.
+- Dado que el admin aplica filtro por estado (`OPEN`, `IN_PROGRESS`, `RESOLVED`, `CLOSED`), entonces el sistema responde únicamente con los tickets que coinciden.
+- Dado que el admin aplica filtro por categoría, entonces el sistema responde únicamente con los tickets de esa categoría.
+- Dado que el admin consulta la lista, entonces el sistema devuelve los tickets ordenados por fecha de creación descendente y con paginación.
+- Dado que un usuario con rol USER intenta acceder a este endpoint, entonces el sistema responde con error 403.
+
+### HU-025: Tomar y cambiar estado de un ticket
+
+| Épica | Rol |
+| ----- | --- |
+| [Épica 5: Gestión de Tickets de Soporte](#épica-5-gestión-de-tickets-de-soporte) | Administrador (ADMIN) |
+
+**Historia**
+Como administrador, quiero asignarme un ticket y cambiar su estado, para indicar al resto del equipo que estoy trabajando en él y reflejar su progreso.
+
+**¿Por qué existe?**
+Para coordinar el trabajo entre múltiples admins, evitando que dos personas atiendan el mismo caso y dando visibilidad al avance.
+
+**Prioridad MoSCoW**
+- [x] **Must**
+- [ ] Should
+- [ ] Could
+- [ ] Won't
+
+**Criterios de Aceptación**
+- Dado que un admin se asigna un ticket en estado `OPEN`, entonces el sistema actualiza `assigned_to` y cambia el estado a `IN_PROGRESS`, y responde con estado 200.
+- Dado que un admin intenta asignarse un ticket ya asignado a otro admin, entonces el sistema responde con error 409 (Conflict).
+- Dado que un admin cambia el estado de un ticket a `RESOLVED` o `CLOSED`, entonces el sistema actualiza el estado y envía un correo al cliente notificando el cambio.
+- Dado que un admin cambia el estado de un ticket a `CLOSED`, entonces el ticket ya no admite nuevas respuestas.
+- Dado que un usuario con rol USER intenta cambiar el estado, entonces el sistema responde con error 403.
+
+### HU-026: Responder en un ticket (Admin)
+
+| Épica | Rol |
+| ----- | --- |
+| [Épica 5: Gestión de Tickets de Soporte](#épica-5-gestión-de-tickets-de-soporte) | Administrador (ADMIN) |
+
+**Historia**
+Como administrador, quiero responder en un ticket asignado o sin asignar, para brindar solución al cliente y dar seguimiento al caso.
+
+**¿Por qué existe?**
+Para que el equipo de soporte pueda comunicar la solución al cliente dentro del mismo hilo del ticket, manteniendo la trazabilidad.
+
+**Prioridad MoSCoW**
+- [x] **Must**
+- [ ] Should
+- [ ] Could
+- [ ] Won't
+
+**Criterios de Aceptación**
+- Dado que un admin responde en un ticket cuyo estado NO es `CLOSED`, entonces el sistema persiste la respuesta con `is_admin_reply = true` y responde con estado 201 (Created).
+- Dado que el admin responde, entonces el sistema envía un correo al cliente notificándole la respuesta con un enlace al ticket.
+- Dado que el admin responde en un ticket sin asignar, entonces el sistema asigna automáticamente el ticket a ese admin y cambia el estado a `IN_PROGRESS`.
+- Dado que el admin responde en un ticket en estado `CLOSED`, entonces el sistema responde con error 409 (Conflict).
+- Dado que un usuario con rol USER intenta usar este endpoint, entonces el sistema responde con error 403.
