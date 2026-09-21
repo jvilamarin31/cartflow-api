@@ -18,13 +18,13 @@ import java.util.function.Function;
 public class JwtService {
 
     @Value("${jwt.key}")
-    private String llaveScreta;
+    private String llaveSecreta;
 
     @Value("${jwt.expiration}")
     private long expiracionMinutos;
 
     private SecretKey getKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(llaveScreta);
+        byte[] keyBytes = Decoders.BASE64.decode(llaveSecreta);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
