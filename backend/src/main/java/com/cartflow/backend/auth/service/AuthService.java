@@ -3,6 +3,8 @@ package com.cartflow.backend.auth.service;
 import com.cartflow.backend.auth.dtos.requests.RegisterRequest;
 import com.cartflow.backend.auth.dtos.responses.RegisterResponse;
 import com.cartflow.backend.auth.exceptions.EmailAlreadyExistsException;
+import com.cartflow.backend.auth.exceptions.ExpiredVerificationTokenException;
+import com.cartflow.backend.auth.exceptions.InvalidVerificationTokenException;
 import com.cartflow.backend.common.jwt.JwtService;
 import com.cartflow.backend.common.notification.EmailService;
 import com.cartflow.backend.user.entity.UserEntity;
@@ -65,6 +67,23 @@ public class AuthService {
         byte[] bytes = new byte[TOKEN_BYTES];
         secureRandom.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    public void verifyEmail(String token) {
+        Optional<UserEntity> userByToken = userRepository.findByVerificationToken(token);
+        if (userByToken.isEmpty()) {
+            throw new InvalidVerificationTokenException();
+        }
+
+        UserEntity userExist = userByToken.get();
+        if (userExist.getVerificationTokenExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new ExpiredVerificationTokenException();
+        }
+
+        userExist.setEmailVerified(true);
+        userExist.setVerificationToken(null);
+        userExist.setVerificationTokenExpiresAt(null);
+        userRepository.save(userExist);
     }
 
 

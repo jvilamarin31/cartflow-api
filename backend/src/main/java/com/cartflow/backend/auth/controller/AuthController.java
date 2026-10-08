@@ -1,16 +1,17 @@
 package com.cartflow.backend.auth.controller;
 
 import com.cartflow.backend.auth.dtos.requests.RegisterRequest;
+import com.cartflow.backend.auth.dtos.responses.MessageResponse;
 import com.cartflow.backend.auth.dtos.responses.RegisterResponse;
 import com.cartflow.backend.auth.service.AuthService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
+@Validated
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -25,5 +26,11 @@ public class AuthController {
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
         RegisterResponse response = authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/verify")
+    public ResponseEntity<MessageResponse> verifyEmail(@RequestParam @NotBlank String token) {
+        authService.verifyEmail(token);
+        return ResponseEntity.ok(new MessageResponse("Cuenta verificada exitosamente"));
     }
 }
