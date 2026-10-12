@@ -1,6 +1,8 @@
 package com.cartflow.backend.auth.controller;
 
+import com.cartflow.backend.auth.dtos.requests.LoginRequest;
 import com.cartflow.backend.auth.dtos.requests.RegisterRequest;
+import com.cartflow.backend.auth.dtos.responses.LoginResponse;
 import com.cartflow.backend.auth.dtos.responses.MessageResponse;
 import com.cartflow.backend.auth.dtos.responses.RegisterResponse;
 import com.cartflow.backend.auth.service.AuthService;
@@ -32,5 +34,11 @@ public class AuthController {
     public ResponseEntity<MessageResponse> verifyEmail(@RequestParam @NotBlank String token) {
         authService.verifyEmail(token);
         return ResponseEntity.ok(new MessageResponse("Cuenta verificada exitosamente"));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        LoginResponse response = authService.login(request);
+        return ResponseEntity.ok(response);
     }
 }

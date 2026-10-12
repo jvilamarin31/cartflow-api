@@ -1,10 +1,10 @@
 package com.cartflow.backend.auth.service;
 
+import com.cartflow.backend.auth.dtos.requests.LoginRequest;
 import com.cartflow.backend.auth.dtos.requests.RegisterRequest;
+import com.cartflow.backend.auth.dtos.responses.LoginResponse;
 import com.cartflow.backend.auth.dtos.responses.RegisterResponse;
-import com.cartflow.backend.auth.exceptions.EmailAlreadyExistsException;
-import com.cartflow.backend.auth.exceptions.ExpiredVerificationTokenException;
-import com.cartflow.backend.auth.exceptions.InvalidVerificationTokenException;
+import com.cartflow.backend.auth.exceptions.*;
 import com.cartflow.backend.common.jwt.JwtService;
 import com.cartflow.backend.common.notification.EmailService;
 import com.cartflow.backend.user.entity.UserEntity;
@@ -84,6 +84,24 @@ public class AuthService {
         userExist.setVerificationToken(null);
         userExist.setVerificationTokenExpiresAt(null);
         userRepository.save(userExist);
+    }
+
+    public LoginResponse login(LoginRequest request) {
+        Optional<UserEntity> userByEmail = userRepository.findByEmail(request.email());
+        if (userByEmail.isEmpty()) {
+            throw new InvalidCredentialsException();
+        }
+
+        UserEntity userExist = userByEmail.get();
+        if (!passwordEncoder.matches(request.password(), userExist.getPassword())) {
+            throw new InvalidCredentialsException();
+        }
+        if (!userExist.getEmailVerified()) {
+            throw new EmailNotVerifiedException();
+        }
+
+        String token = jwtService.getToken(userExist);
+        return new LoginResponse(token, userExist.getId(), userExist.getName(), userExist.getEmail(), userExist.getRole());
     }
 
 
